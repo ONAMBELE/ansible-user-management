@@ -1,0 +1,57 @@
+
+---
+- name: Installer Docker sur la machine cible
+  hosts: all
+  become: true
+  tasks:
+    # 1. Mettre à jour les paquets système
+    - name: Mettre à jour les paquets système
+      apt:
+        update_cache: yes
+
+    # 2. Installer les prérequis pour Docker
+    - name: Installer les dépendances nécessaires
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    # 3. Ajouter la clé GPG officielle de Docker
+    - name: Ajouter la clé GPG de Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    # 4. Ajouter le dépôt Docker à la liste des sources
+    - name: Ajouter le dépôt Docker
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    # 5. Mettre à jour les paquets après ajout du dépôt Docker
+    - name: Mettre à jour la liste des paquets après ajout du dépôt Docker
+      apt:
+        update_cache: yes
+
+    # 6. Installer Docker
+    - name: Installer Docker CE
+      apt:
+        name: docker-ce
+        state: present
+
+    # 7. Activer et démarrer le service Docker
+    - name: Démarrer et activer Docker
+      systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    # 8. Ajouter l'utilisateur actuel au groupe Docker (optionnel)
+    - name: Ajouter l'utilisateur actuel au groupe Docker
+      user:
+        name: vagrant
+        groups: docker
+        append: true
